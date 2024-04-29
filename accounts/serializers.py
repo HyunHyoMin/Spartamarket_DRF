@@ -1,4 +1,3 @@
-from django.contrib.auth.password_validation import validate_password, password_changed
 from rest_framework import serializers
 from .models import User
 
