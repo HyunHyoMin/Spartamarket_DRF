@@ -10,3 +10,9 @@ class ProductList(APIView):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response(serializer.data)
