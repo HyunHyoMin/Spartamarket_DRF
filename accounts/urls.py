@@ -1,14 +1,15 @@
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenBlacklistView,
 )
 from . import views
 
 urlpatterns = [
     path('', views.signup),
     path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path('<str:username>/', views.UserDetail.as_view()),
 ]
