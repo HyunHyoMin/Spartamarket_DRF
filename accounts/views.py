@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, PasswordChangeSerializer
+from .serializers import UserSerializer, PasswordChangeSerializer, UserUpdateSerializer
 from .models import User
 
 
@@ -23,7 +23,6 @@ def get_tokens_for_user(user):
 
 class UserManagement(APIView):
     def post(self, request):
-        request.data["password"] = make_password(request.data["password"])
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -31,8 +30,6 @@ class UserManagement(APIView):
             return Response(data=tokens, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @permission_classes([IsAuthenticated])
-    @authentication_classes([JWTAuthentication])
     def delete(self, request):
         user = User.objects.get(id=request.user.id)
         if check_password(request.data["password"], user.password):
@@ -41,14 +38,11 @@ class UserManagement(APIView):
         else:
             return Response(data={"message":"비밀번호 불일치"}, status=status.HTTP_400_BAD_REQUEST)
 
-    @permission_classes([IsAuthenticated])
-    @authentication_classes([JWTAuthentication])
     def put(self, request):
         user = User.objects.get(id=request.user.id)
         serializer = PasswordChangeSerializer(data=request.data, context={'request':request})
         if serializer.is_valid(raise_exception=True):
-            user.password = make_password(request.data["after_password"])
-            user.save()
+            serializer.save()
         return Response({"message": "비밀번호가 성공적으로 변경되었습니다."}, status=status.HTTP_200_OK)
 
 
@@ -63,7 +57,7 @@ class UserDetail(APIView):
 
     def put(self, request, username):
         user = get_object_or_404(User, username=username)
-        serializer = UserSerializer(data=request.data, instance=user, partial=True)
+        serializer = UserUpdateSerializer(data=request.data, instance=user, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
         return Response(data=serializer.data)
