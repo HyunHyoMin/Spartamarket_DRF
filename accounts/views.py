@@ -41,11 +41,11 @@ class UserManagement(APIView):
         else:
             return Response(data={"message":"비밀번호 불일치"}, status=status.HTTP_400_BAD_REQUEST)
 
+    @permission_classes([IsAuthenticated])
+    @authentication_classes([JWTAuthentication])
     def put(self, request):
         user = User.objects.get(id=request.user.id)
-        if not check_password(request.data["before_password"], user.password):
-            return Response({"error": "현재 비밀번호가 일치하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = PasswordChangeSerializer(data=request.data)
+        serializer = PasswordChangeSerializer(data=request.data, context={'request':request})
         if serializer.is_valid(raise_exception=True):
             user.password = make_password(request.data["after_password"])
             user.save()
