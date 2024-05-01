@@ -34,14 +34,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PasswordChangeSerializer(serializers.Serializer):
-    before_password = serializers.CharField(required=True)
-    after_password = serializers.CharField(required=True)
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
     confirm_password = serializers.CharField(required=True)
 
 
     def validate(self, data):
         user = self.context['request'].user
-        password = data.get('after_password')
+        password = data.get('new_password')
         
         if password:
             errors = dict()
@@ -53,21 +53,21 @@ class PasswordChangeSerializer(serializers.Serializer):
             if errors:
                 raise serializers.ValidationError(errors)
 
-        if data.get('after_password') != data.get('confirm_password'):
+        if data.get('new_password') != data.get('confirm_password'):
             raise serializers.ValidationError("새 비밀번호가 서로 일치하지 않습니다.")
         
             
-        if not user.check_password(data.get("before_password")):
+        if not user.check_password(data.get("old_password")):
             raise serializers.ValidationError("현재 비밀번호가 일치하지 않습니다.")
 
-        if user.check_password(data.get("after_password")):
+        if user.check_password(data.get("new_password")):
             raise serializers.ValidationError("새 비밀번호가 현재 비밀번호와 같습니다.")
             
         return data
 
     def save(self, **kwargs):
         user = self.context['request'].user
-        user.set_password(self.validated_data['after_password'])
+        user.set_password(self.validated_data['new_password'])
         user.save()
         return user
 
