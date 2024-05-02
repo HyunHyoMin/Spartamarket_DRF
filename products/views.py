@@ -18,7 +18,7 @@ class ProductList(APIView):
         return self.paginator.get_paginated_response(serializer.data)
     
     def post(self, request):
-        serializer = ProductSerializer(data=request.data)
+        serializer = ProductSerializer(data=request.data, context={"request":request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
         return Response(serializer.data)
